@@ -1,11 +1,8 @@
 import os
 import numpy as np
-import pandas as pd
 
 import tensorflow as tf
 from tensorflow.keras import models, layers
-
-import wandb
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,20 +10,7 @@ dense_hidden_units = 32
 dropout_rate = 0.2
 #epochs = 
 LSTM_units = 64
-test_st="2st_label_is_middle"
 
-wandb.init(
-    project=f'RDI_gesture_model_slide_window_test_grid_{test_st}',
-    name=f'RDI_gesture_model_{test_st}_{dense_hidden_units}_{dropout_rate}',
-    config={
-        'batch_size': 180,
-        'optimizer': 'adam',
-        'loss': 'sparse_categorical_crossentropy',
-            
-    }
-)
-
-config= wandb.config
 
 def model_struct(LSTM_units, dense_hidden_units, dropout_rate, num_classes, time_steps, width, height):
     
@@ -76,24 +60,9 @@ def evaluate_model():
     test_data = test_data['data']
     #test_data = test_data.reshape((-1, 32, 32, 1))  # Reshape to (samples, height, width, channels)
     print("test_data shape:", test_data.shape)
-    
-    wandb.run.name = f"RDI_gesture_model_slide_window_grid_evaluate_{dense_hidden_units}_{LSTM_units}_{dropout_rate}"
 
     model_dir =os.path.join(current_path, "model")
     
-    """
-    #資料預測結果(機率)
-    model_name=r"D:\gesture_recognition_by_mmWave_and_AI\online_infer\model\RDI_gesture_model_slide_window_32_0.3_64_ep_60.h5"
-    model=tf.keras.models.load_model(model_name)
-    number=1
-    
-    for tr in range(len(train_data)):
-        print("data No.: ", number)
-        number+=1
-        load_and_predict(model, train_data[tr])
-        print("label: ", train_labels[tr])
-        print("========================================\n")
-    """
     
     model_name = f"gesture_fans_{dense_hidden_units}_{dropout_rate}_{LSTM_units}"
     
@@ -103,20 +72,10 @@ def evaluate_model():
         
         m_structure=model_struct(LSTM_units, dense_hidden_units, dropout_rate, num_classes=5, time_steps=32, width=32, height=32)
         m_structure.load_weights(path)
-        m_structure.compile(optimizer=config.optimizer,
-                            loss=config.loss,
+        m_structure.compile(optimizer='adam',
+                            loss='sparse_categorical_crossentropy',
                             metrics=['accuracy'])
         print(f"\nevaluate model : {path}")
-        
-        wandb.log({
-            "epochs": e,
-            "train_acc": m_structure.evaluate(train_data, train_labels)[1],
-            "train_loss": m_structure.evaluate(train_data, train_labels)[0],
-            "val_acc": m_structure.evaluate(valid_data, valid_labels)[1],
-            "val_loss": m_structure.evaluate(valid_data, valid_labels)[0],
-            "test_acc": m_structure.evaluate(test_data, test_labels)[1],
-            "test_loss": m_structure.evaluate(test_data, test_labels)[0],
-        })
     
 def load_and_predict(model, data):
     print("data shape: ", data.shape)  # (32, 32)

@@ -13,38 +13,6 @@ else:
     device = tf.config.list_physical_devices('CPU')[0]
 print(f"Using device: {device}")
 
-import wandb
-
-sweep_config={
-    'name': 'gesture_fans_sweep_ver_2_gesture_change',
-    'project': 'gesture_fans_model',
-    
-    'method': 'grid',
-    
-    'metric': {
-        'name': 'val_accuracy',
-        'goal': 'maximize'
-    },
-    
-    'parameters': {
-        'dense_hidden_units': {
-            'values': [64, ]#32, 128,256
-        },
-        'dropout_rate': {
-            'values': [0.2, 0.3,]# 0.4, 0.5]
-        },
-        
-        'lstm_units': {
-            'value': 64#[32,64,128
-            #           ]
-        },
-        'epochs': {
-            'value': 100#[100,200,300
-            #           ]
-        },
-    }
-}
-
 current_path = os.path.dirname(os.path.abspath(__file__))
 
 class CustomCheckpoint(Callback):
@@ -94,22 +62,10 @@ def fit_model():
     input_shape = (time_steps, width, height, 1)
     num_classes= 4 
     
-    wandb.init(
-        project='gesture_fans_model_ver_2_gesture_change',
-        config={
-            'batch_size': 200,
-            'optimizer': 'adam',
-            'loss': 'sparse_categorical_crossentropy',
-            #'CNN_dropout_rate': 0.3,
-        }
-    )
-    
-    config= wandb.config
-    dense_hidden_units = config.dense_hidden_units
-    dropout_rate = config.dropout_rate
-    epochs = config.epochs
-    LSTM_units = config.lstm_units
-    wandb.run.name = f"gesture_fans_{dense_hidden_units}_{LSTM_units}_{dropout_rate}_{epochs}"
+    dense_hidden_units = 64
+    epochs = 100
+    LSTM_units = 64
+    dropout_rate=0.2
     
     model = tf.keras.Sequential([
         #timedistributed is to remain the time structure of the input data
@@ -148,12 +104,10 @@ def fit_model():
     
     model.fit(train_data, train_labels, validation_data=(valid_data, valid_labels), 
               epochs=epochs, 
-              batch_size=config.batch_size, 
+              batch_size=200, 
               shuffle=True,
               callbacks=[custom_checkpoint])
     
     print("\nTraining complete")
     
-    
-sweep_id = wandb.sweep(sweep_config, project='gesture_fans_ver_2_gesture_change')
-wandb.agent(sweep_id, function=fit_model)
+fit_model()
