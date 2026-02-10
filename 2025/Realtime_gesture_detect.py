@@ -158,7 +158,7 @@ class GestureActionController:
 
     def process_gesture(self, window_data, model_instance):
         # 1. 準備模型輸入
-        window_batch = np.expand_dims(window_data, axis=0)
+        #window_batch = np.expand_dims(window_data, axis=0)
         window_batch = np.expand_dims(window_batch, axis=-1) # 若模型需要 channel 維度
 
         # 2. 執行模型推論
@@ -174,13 +174,13 @@ class GestureActionController:
             predicted_index = 0  # background
 
         # -------------------------------------------------------------
-        # A. 重置計數器邏輯 (使用 self.turn_counter)
+        # A. 重置計數器邏輯 
         # -------------------------------------------------------------
         if predicted_index != 3:
             self.turn_counter = 0
 
         # -------------------------------------------------------------
-        # B. 處理 Turn (手勢 3)
+        # B. 處理 Turn
         # -------------------------------------------------------------
         if predicted_index == 3:
             self.turn_counter += 1
@@ -203,7 +203,7 @@ class GestureActionController:
                 predicted_index = 999
 
         # -------------------------------------------------------------
-        # C. 處理 Open (手勢 1)
+        # C. 處理 Open
         # -------------------------------------------------------------
         if predicted_index == 1:
             if self.open_state == 1:
@@ -214,7 +214,7 @@ class GestureActionController:
                 print("open_state 0 => 1 (Fan ON)")
 
         # -------------------------------------------------------------
-        # D. 處理 Close (手勢 2)
+        # D. 處理 Close
         # -------------------------------------------------------------
         if predicted_index == 2:
             if self.open_state == 0 and self.turn_state == 0:
@@ -309,8 +309,8 @@ class CustomDataProcessor(Updater):
 
 if __name__ == '__main__':
 
-    WINDOW_SIZE = 20
-    STRIDE_STEP = 5
+    window = 20
+    stride = 5
 
     # 1. 初始化 Serial (取得物件)
     my_arduino_serial = init_serial_connection()
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     gesture_controller = GestureActionController(my_arduino_serial)
 
     # 3. 載入模型
-    my_model = ExampleGestureModel(input_shape=(WINDOW_SIZE, 32, 32))
+    my_model = ExampleGestureModel(input_shape=(window, 32, 32))
 
     # 4. KKT 腳本設定
     setting_file = r'K60168-Test-00256-008-v0.0.8-20230717_60cm'
@@ -339,8 +339,8 @@ if __name__ == '__main__':
         data_type=data_type,
         callback_function=gesture_controller.process_gesture,
         model_instance=my_model,
-        window_size=WINDOW_SIZE,
-        stride_step=STRIDE_STEP
+        window_size=window,
+        stride_step=stride
     )
 
     receiver = MultiResult4168BReceiver()
