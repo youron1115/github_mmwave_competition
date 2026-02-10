@@ -10,7 +10,7 @@ from KKT_Module.KKT_Module.GuiUpdater.GuiUpdater import Updater
 import sys
 import os
 import time
-import serial   # 引入序列通訊庫
+import serial
 import numpy as np 
 from collections import deque 
 
@@ -27,7 +27,6 @@ library_path = os.path.join(current_dir, 'Library')
 if library_path not in sys.path:
     sys.path.insert(0, library_path)
 
-# 手勢對應表 (常數，維持全域即可)
 INVERSE_LABEL_MAP = {
     0: 'background',
     1: 'open',
@@ -38,7 +37,7 @@ INVERSE_LABEL_MAP = {
 
 def init_serial_connection():
     """初始化 Arduino 連線並回傳 serial 物件"""
-    port_number = "COM8"  # 請確認您的 COM Port
+    port_number = "COM8" 
     ser = None
     try:
         ser = serial.Serial(port_number, 9600, timeout=1)
@@ -123,7 +122,6 @@ class ExampleGestureModel:
     """模型包裝類別"""
     def __init__(self, input_shape=(20, 32, 32)):
         try:
-            # 請修改為您的權重檔路徑
             weight = "./model/gesture_fans_64_0.2_64_ep_80.weights.h5"
         except:
             print("[error] : load weight fail")
@@ -143,7 +141,7 @@ class ExampleGestureModel:
 
 class GestureActionController:
     """
-    負責管理手勢狀態 (Open/Turn/Counter) 並控制 Arduino。
+    管理手勢狀態並控制 Arduino。
     原本的全域變數與 process_window_data 邏輯都封裝在此。
     """
     def __init__(self, arduino_serial_obj):
@@ -159,10 +157,6 @@ class GestureActionController:
         print(f"Initial State -> Open: {self.open_state}, Turn: {self.turn_state}")
 
     def process_gesture(self, window_data, model_instance):
-        """
-        核心邏輯方法。
-        對應原本的 process_window_data 函式。
-        """
         # 1. 準備模型輸入
         window_batch = np.expand_dims(window_data, axis=0)
         window_batch = np.expand_dims(window_batch, axis=-1) # 若模型需要 channel 維度
@@ -267,7 +261,7 @@ class GestureActionController:
                     print(f"    -> Serial Write Error: {e}")
 
 # =========================================================
-# === 資料處理器 (維持原狀，只需傳入 callback) ===
+# === 資料處理器 
 # =========================================================
 
 class CustomDataProcessor(Updater):
@@ -322,7 +316,6 @@ if __name__ == '__main__':
     my_arduino_serial = init_serial_connection()
 
     # 2. 初始化動作控制器 (傳入 Serial 物件)
-    #    所有的狀態 (open_state 等) 現在都活在這個物件裡
     gesture_controller = GestureActionController(my_arduino_serial)
 
     # 3. 載入模型
@@ -344,7 +337,7 @@ if __name__ == '__main__':
     #    注意 callback_function 傳入的是 controller.process_gesture
     processor = CustomDataProcessor(
         data_type=data_type,
-        callback_function=gesture_controller.process_gesture, # <--- 關鍵修改
+        callback_function=gesture_controller.process_gesture,
         model_instance=my_model,
         window_size=WINDOW_SIZE,
         stride_step=STRIDE_STEP
