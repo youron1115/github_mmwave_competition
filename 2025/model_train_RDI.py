@@ -63,7 +63,7 @@ def fit_model():
     num_classes= 4 
     
     dense_hidden_units = 64
-    epochs = 80
+    epochs = 100
     LSTM_units = 64
     dropout_rate=0.2
     
